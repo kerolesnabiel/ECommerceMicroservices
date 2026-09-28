@@ -1,17 +1,15 @@
 services:
   apigateway:
     container_name: apigateway
-    image: ${DOCKER_REGISTRY-}apigateway
     build:
       context: .
-      dockerfile: ApiGateway/Dockerfile
+      dockerfile: src/ApiGateway/Dockerfile
 
   user-service:
     container_name: user-service
-    image: ${DOCKER_REGISTRY-}user-service
     build:
       context: .
-      dockerfile: UserService/Dockerfile
+      dockerfile: src/Services/UserService/Dockerfile
 
   user-service-db:
     container_name: user-service-db
@@ -19,50 +17,45 @@ services:
 
   product-service:
     container_name: product-service
-    image: ${DOCKER_REGISTRY-}product-service
     build:
       context: .
-      dockerfile: ProductService/Dockerfile
+      dockerfile: src/Services/ProductService/Dockerfile
 
   product-service-db:
     container_name: product-service-db
     image: postgres
 
   cart-service:
-    image: ${DOCKER_REGISTRY-}cart-service
     container_name: cart-service
     build:
       context: .
-      dockerfile: CartService/Dockerfile
+      dockerfile: src/Services/CartService/Dockerfile
 
   cart-service-db:
     container_name: cart-service-db
     image: postgres
 
   order-service:
-    image: ${DOCKER_REGISTRY-}order-service
     container_name: order-service
     build:
       context: .
-      dockerfile: OrderService/Dockerfile
+      dockerfile: src/Services/OrderService/Dockerfile
 
   order-service-db:
     container_name: order-service-db
     image: postgres
 
   payment-service:
-    image: ${DOCKER_REGISTRY-}payment-service
     container_name: payment-service
     build:
       context: .
-      dockerfile: PaymentService/Dockerfile
+      dockerfile: src/Services/PaymentService/Dockerfile
 
   notification-service:
-    image: ${DOCKER_REGISTRY-}notification-service
     container_name: notification-service
     build:
       context: .
-      dockerfile: NotificationService/Dockerfile
+      dockerfile: src/Services/NotificationService/Dockerfile
 
   notification-service-db:
     container_name: notification-service-db
