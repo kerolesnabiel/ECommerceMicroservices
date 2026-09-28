@@ -11,7 +11,7 @@ public class CheckoutCommandHandler(
     IPublishEndpoint publishEndpoint,
     ICartRepository cartRepository,
     IUserContext userContext)
-        : IRequestHandler<CheckoutCommand>
+    : IRequestHandler<CheckoutCommand>
 {
     public async Task Handle(CheckoutCommand request, CancellationToken cancellationToken)
     {
@@ -22,7 +22,7 @@ public class CheckoutCommandHandler(
             throw new BadHttpRequestException("Your cart is empty");
 
         decimal total = cart.Items.Sum(i => i.Price * i.Quantity);
-        long amount = (long)total * 100;
+        long amount = (long)(total * 100);
 
         var response = await paymentService.ChargeAsync(new()
         {
@@ -41,5 +41,5 @@ public class CheckoutCommandHandler(
         await publishEndpoint.Publish(checkoutEvent, cancellationToken);
         cart.Items.Clear();
         await cartRepository.AddCartAsync(cart, cancellationToken);
-    } 
+    }
 }

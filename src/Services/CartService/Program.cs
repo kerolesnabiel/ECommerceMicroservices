@@ -3,7 +3,7 @@ using BuildingBlocks.Middlewares;
 using BuildingBlocks.Extensions.ServiceCollection;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddServiceExtensions(builder.Configuration);
+builder.AddServiceExtensions();
 builder.Services.AddAuthenticationService(builder.Configuration);
 builder.Services.AddSwagger("Cart");
 

@@ -10,49 +10,48 @@ namespace CartService.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    public static void AddServiceExtensions(this IServiceCollection services, IConfiguration configuration)
+    public static void AddServiceExtensions(this WebApplicationBuilder builder)
     {
         var assembly = typeof(ServiceCollectionExtensions).Assembly;
 
-        services.AddMediatR(cfg =>
+        builder.Services.AddMediatR(cfg =>
         {
             cfg.RegisterServicesFromAssembly(assembly);
             cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
 
-        services.AddValidatorsFromAssembly(assembly);
+        builder.Services.AddValidatorsFromAssembly(assembly);
 
-        services.AddMarten(cfg => cfg.Connection
-            (configuration.GetConnectionString("Database")!))
+        builder.Services.AddMarten(cfg => cfg.Connection
+                (builder.Configuration.GetConnectionString("Database")!))
             .UseLightweightSessions();
 
-        services.AddCarter();
-        services.AddScoped<ErrorHandlingMiddleware>();
+        builder.Services.AddCarter();
+        builder.Services.AddScoped<ErrorHandlingMiddleware>();
 
-        services.AddScoped<ICartRepository, CartRepository>();
-        services.Decorate<ICartRepository, CachedCartRepository>();
+        builder.Services.AddScoped<ICartRepository, CartRepository>();
+        builder.Services.Decorate<ICartRepository, CachedCartRepository>();
 
-        services.AddStackExchangeRedisCache(options =>
-            options.Configuration = configuration.GetConnectionString("Redis"));
+        builder.Services.AddStackExchangeRedisCache(options =>
+            options.Configuration = builder.Configuration.GetConnectionString("Redis"));
 
         MappingProfile.Configure();
 
-        services.AddGrpcClient<ProductServiceProtoClient>(options => options.Address = new Uri(configuration["ProductServiceUrl"]!))
-        .ConfigurePrimaryHttpMessageHandler(() =>
-            new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback =
-                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            });
+        var handler = new HttpClientHandler();
+        if (builder.Environment.IsDevelopment())
+            handler.ServerCertificateCustomValidationCallback =
+                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator;
 
-        services.AddGrpcClient<PaymentServiceProtoClient>(options => options.Address = new Uri(configuration["PaymentServiceUrl"]!))
-        .ConfigurePrimaryHttpMessageHandler(() =>
-            new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback =
-                HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            });
+        builder.Services
+            .AddGrpcClient<ProductServiceProtoClient>(options =>
+                options.Address = new Uri(builder.Configuration["ProductServiceUrl"]!))
+            .ConfigurePrimaryHttpMessageHandler(() => handler);
 
-        services.AddMassTransitService(configuration);
+        builder.Services
+            .AddGrpcClient<PaymentServiceProtoClient>(options =>
+                options.Address = new Uri(builder.Configuration["PaymentServiceUrl"]!))
+            .ConfigurePrimaryHttpMessageHandler(() => handler);
+
+        builder.Services.AddMassTransitService(builder.Configuration);
     }
 }
