@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/keycloak/">
+    <File Path="keycloak/realm-export.json" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/ApiGateway/ApiGateway.csproj" />
     <Project Path="src/BuildingBlocks/BuildingBlocks.csproj" />

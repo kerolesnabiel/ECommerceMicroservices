@@ -7,20 +7,19 @@ using BuildingBlocks.User;
 namespace UserService.Application.SellerAccounts.Commands.UpdateSellerAccount;
 
 public class UpdateSellerAccountCommandHandler(
-        ILogger<UpdateSellerAccountCommandHandler> logger,
-        ISellerAccountRepository sellerAccountRepository,
-        IUserContext userContext,
-        IMapper mapper
-    ) : IRequestHandler<UpdateSellerAccountCommand>
+    ILogger<UpdateSellerAccountCommandHandler> logger,
+    ISellerAccountRepository sellerAccountRepository,
+    IUserContext userContext,
+    IMapper mapper
+) : IRequestHandler<UpdateSellerAccountCommand>
 {
-
     public async Task Handle(UpdateSellerAccountCommand request, CancellationToken cancellationToken)
     {
         var currentUser = userContext.GetCurrentUser();
         logger.LogInformation("Updating seller account for user: {UserId}", currentUser.Id);
 
-        var sellerAccount = await sellerAccountRepository.GetByUserIdAsync(currentUser.Id)
-            ?? throw new NotFoundException("User doesn't have a seller account");
+        var sellerAccount = await sellerAccountRepository.GetByIdAsync(currentUser.Id)
+                            ?? throw new NotFoundException("User doesn't have a seller account");
 
         mapper.Map(request, sellerAccount);
         sellerAccount.UpdatedAt = DateTime.UtcNow;

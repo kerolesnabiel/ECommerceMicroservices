@@ -24,6 +24,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
+      - Keycloak__Authority=http://keycloak:8080/realms/ecommerce
+      - Keycloak__Audience=ecommerce-frontend
+      - Keycloak__DevMode=true
     ports:
       - "6000:8080"
       - "6001:8081"
@@ -49,7 +52,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
-      - PublicKeyUrl=http://user-service:8080/api/users/public-key
+      - Keycloak__Authority=http://keycloak:8080/realms/ecommerce
+      - Keycloak__Audience=ecommerce-frontend
+      - Keycloak__DevMode=true
     ports:
       - "6010:8080"
       - "6011:8081"
@@ -58,6 +63,7 @@ services:
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
     depends_on:
       - product-service-db
+      - keycloak
 
   product-service-db:
     environment:
@@ -75,7 +81,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
-      - PublicKeyUrl=http://user-service:8080/api/users/public-key
+      - Keycloak__Authority=http://keycloak:8080/realms/ecommerce
+      - Keycloak__Audience=ecommerce-frontend
+      - Keycloak__DevMode=true
       - ProductServiceUrl=https://product-service:8081
       - PaymentServiceUrl=https://payment-service:8081
       - ConnectionStrings__Redis=distributed-cache:6379
@@ -91,6 +99,7 @@ services:
     depends_on:
       - cart-service-db
       - distributed-cache
+      - keycloak
 
   cart-service-db:
     environment:
@@ -108,7 +117,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
-      - PublicKeyUrl=http://user-service:8080/api/users/public-key
+      - Keycloak__Authority=http://keycloak:8080/realms/ecommerce
+      - Keycloak__Audience=ecommerce-frontend
+      - Keycloak__DevMode=true
       - RabbitMQ__Host=amqp://ecommerce-mq:5672
       - RabbitMQ__Username=guest
       - RabbitMQ__Password=guest
@@ -121,6 +132,7 @@ services:
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
     depends_on:
       - order-service-db
+      - keycloak
 
   order-service-db:
     environment:
@@ -168,7 +180,9 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_HTTP_PORTS=8080
       - ASPNETCORE_HTTPS_PORTS=8081
-      - PublicKeyUrl=http://user-service:8080/api/users/public-key
+      - Keycloak__Authority=http://keycloak:8080/realms/ecommerce
+      - Keycloak__Audience=ecommerce-frontend
+      - Keycloak__DevMode=true
       - RabbitMQ__Host=amqp://ecommerce-mq:5672
       - RabbitMQ__Username=guest
       - RabbitMQ__Password=guest
@@ -181,6 +195,7 @@ services:
     depends_on:
       - notification-service-db
       - distributed-cache
+      - keycloak
 
   notification-service-db:
     environment:

@@ -14,15 +14,9 @@ internal class SellerAccountRepository(UserServiceDbContext dbContext) : ISeller
         return sellerAccount;
     }
 
-    public async Task<SellerAccount?> GetByIdAsync(Guid Id)
+    public async Task<SellerAccount?> GetByIdAsync(Guid id)
     {
-        return await dbContext.SellerAccounts.FirstOrDefaultAsync(x => x.Id == Id);
-    }
-
-    public async Task<SellerAccount?> GetByUserIdAsync(Guid userId)
-    {
-        return await dbContext.SellerAccounts
-            .FirstOrDefaultAsync(x => x.UserId == userId);
+        return await dbContext.SellerAccounts.FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<SellerAccount> UpdateAsync(SellerAccount sellerAccount)

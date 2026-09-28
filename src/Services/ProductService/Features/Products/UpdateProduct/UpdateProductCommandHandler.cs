@@ -11,16 +11,11 @@ public class UpdateProductCommandHandler(
     public async Task Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
         var currentUser = userContext.GetCurrentUser();
-        if (string.IsNullOrEmpty(currentUser.SellerId))
-            throw new BadHttpRequestException("The user does not have a seller account");
-
-        bool validId = Guid.TryParse(currentUser.SellerId, out Guid sellerId);
-        if (!validId) throw new BadHttpRequestException("Invalid seller Id");
 
         var product = await session.LoadAsync<Product>(request.Id, cancellationToken)
             ?? throw new NotFoundException(nameof(Product), request.Id.ToString());
 
-        if (product.SellerId != sellerId) 
+        if (product.SellerId != currentUser.Id) 
             throw new ForbiddenException();
 
         var config = new TypeAdapterConfig();

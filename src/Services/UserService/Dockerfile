@@ -27,8 +27,6 @@ RUN dotnet publish "./UserService.csproj" -c $BUILD_CONFIGURATION -o /app/publis
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-COPY ["src/Services/UserService/public_key.pem", "./"]
-COPY ["src/Services/UserService/private_key.pem", "./"]
 COPY ["src/Shared/Scripts/wait-for", "./"]
 COPY ["src/Services/UserService/docker-entrypoint.sh", "./"]
 USER root

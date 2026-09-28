@@ -11,10 +11,8 @@ public static class ServiceCollectionExtensions
     public static void AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<UserServiceDbContext>(options =>
-
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
-        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAddressRepository, AddressRepository>();
         services.AddScoped<ISellerAccountRepository, SellerAccountRepository>();
         services.AddScoped<ISeeder, Seeder>();

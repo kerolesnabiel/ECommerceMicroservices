@@ -13,19 +13,23 @@ public class UserContext(IHttpContextAccessor httpContextAccessor) : IUserContex
     public CurrentUser GetCurrentUser()
     {
         var user = httpContextAccessor.HttpContext?.User
-            ?? throw new InvalidOperationException("User context is not present");
+                   ?? throw new InvalidOperationException("User context is not present");
 
         if (user.Identity == null || !user.Identity.IsAuthenticated)
             throw new UnauthorizedAccessException();
 
-        var userIdClaim = user.FindFirst(c => c.Type == ClaimTypes.NameIdentifier);
-        var roleClaim = user.FindFirst(c => c.Type == ClaimTypes.Role);
-        var sellerIdClaim = user.FindFirst(c => c.Type == "SellerId");
+        var userIdClaim = user.FindFirst("sub");
 
-        if (userIdClaim == null || roleClaim == null)
+        if (userIdClaim == null)
             throw new InvalidOperationException("Required claims are missing.");
 
-        var userId = Guid.Parse(userIdClaim.Value);
-        return new CurrentUser(userId, roleClaim.Value, sellerIdClaim?.Value);
+        if (!Guid.TryParse(userIdClaim.Value, out var userId))
+            throw new BadHttpRequestException("Invalid user id");
+
+        var roles = user.FindAll(ClaimTypes.Role)
+            .Select(c => c.Value)
+            .ToList();
+
+        return new CurrentUser(userId, roles);
     }
 }

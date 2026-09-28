@@ -21,6 +21,7 @@ public class SellerAccountsController(IMediator mediator) : ControllerBase
     }
 
     [HttpPut]
+    [Authorize(Roles = "seller")]
     public async Task<IActionResult> UpdateSellerAccount(UpdateSellerAccountCommand command)
     {
         await mediator.Send(command);
@@ -28,12 +29,13 @@ public class SellerAccountsController(IMediator mediator) : ControllerBase
     }
 
     [HttpGet]
+    [Authorize(Roles = "seller")]
     public async Task<IActionResult> GetSellerAccount()
     {
         var res = await mediator.Send(new GetSellerAccountQuery());
         return Ok(res);
     }
-    
+
     [HttpGet("/api/sellers/{id}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetSellerAccountById([FromRoute] Guid id)

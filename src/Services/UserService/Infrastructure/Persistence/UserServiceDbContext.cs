@@ -3,12 +3,8 @@ using UserService.Domain.Entities;
 
 namespace UserService.Infrastructure.Persistence;
 
-class UserServiceDbContext : DbContext
+internal class UserServiceDbContext(DbContextOptions<UserServiceDbContext> options) : DbContext(options)
 {
-    public UserServiceDbContext(DbContextOptions<UserServiceDbContext> options) : base(options)
-    {}
-
-    public DbSet<User> Users { get; set; } = default!;
     public DbSet<Address> Addresses { get; set; } = default!;
     public DbSet<SellerAccount> SellerAccounts { get; set; } = default!;
 
@@ -16,14 +12,7 @@ class UserServiceDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.Addresses)
-            .WithOne(a => a.User)
-            .HasForeignKey(a => a.UserId);
-
-        modelBuilder.Entity<User>()
-            .HasOne(u => u.SellerAccount)
-            .WithOne(s => s.User)
-            .HasForeignKey<SellerAccount>(s => s.UserId);
+        modelBuilder.Entity<Address>()
+            .HasIndex(a => a.UserId);
     }
 }

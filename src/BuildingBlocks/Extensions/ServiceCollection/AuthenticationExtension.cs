@@ -1,76 +1,57 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using BuildingBlocks.User;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Cryptography;
+using System.Security.Claims;
 using System.Text.Json;
-using BuildingBlocks.User;
 
 namespace BuildingBlocks.Extensions.ServiceCollection;
-
-record JwtSettings(string publicKey, string issuer, string audience);
 
 public static class AuthenticationExtension
 {
     public static void AddAuthenticationService(this IServiceCollection services, IConfiguration config)
     {
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(async options =>
+            .AddJwtBearer(options =>
             {
-                var publicKeyUrl = config["PublicKeyUrl"]!;
-                string? publicKeyResponse = await FetchPublicKeyAsync(publicKeyUrl);
-
-                if (string.IsNullOrEmpty(publicKeyResponse))
-                {
-                    throw new InvalidOperationException("Failed to fetch public key.");
-                }
-
-                var jwtSettings = JsonSerializer.Deserialize<JwtSettings>(publicKeyResponse);
-
-                if (jwtSettings == null || string.IsNullOrEmpty(jwtSettings.publicKey))
-                {
-                    throw new InvalidOperationException("Invalid JWT settings.");
-                }
-
-                var rsa = RSA.Create();
-                rsa.ImportFromPem(jwtSettings.publicKey);
-
-                options.TokenValidationParameters = new TokenValidationParameters
-                {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwtSettings.issuer,
-                    ValidAudience = jwtSettings.audience,
-                    IssuerSigningKey = new RsaSecurityKey(rsa),
-                    ValidateLifetime = true
-                };
+                options.Authority = config["Keycloak:Authority"];
+                options.Audience = config["Keycloak:Audience"];
+                options.RequireHttpsMetadata = !config.GetValue<bool>("Keycloak:DevMode");
+                options.MapInboundClaims = false;
             });
 
+        services.AddSingleton<IClaimsTransformation, KeycloakRolesClaimsTransformation>();
         services.AddAuthorization();
         services.AddHttpContextAccessor();
         services.AddScoped<IUserContext, UserContext>();
     }
+}
 
-    private static async Task<string?> FetchPublicKeyAsync(string url)
+public class KeycloakRolesClaimsTransformation : IClaimsTransformation
+{
+    public Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
-        using var httpClient = new HttpClient();
-        string response = string.Empty;
+        var identity = (ClaimsIdentity)principal.Identity!;
 
-        for (int attempt = 0; attempt < 5; attempt++)
+        if (identity.HasClaim(c => c.Type == ClaimTypes.Role))
+            return Task.FromResult(principal);
+
+        var realmAccess = principal.FindFirst("realm_access")?.Value;
+        if (realmAccess != null)
         {
-            try
+            using var doc = JsonDocument.Parse(realmAccess);
+            if (doc.RootElement.TryGetProperty("roles", out var roles))
             {
-                response = await httpClient.GetStringAsync(url);
-                return response;
-            }
-            catch (HttpRequestException ex)
-            {
-                Console.WriteLine($"Error fetching public key: {ex.Message}. Retrying... Attempt {attempt + 1}");
-                await Task.Delay(5000);
+                foreach (var role in roles.EnumerateArray())
+                {
+                    var roleName = role.GetString();
+                    if (roleName != null)
+                        identity.AddClaim(new Claim(ClaimTypes.Role, roleName));
+                }
             }
         }
 
-        return null;
+        return Task.FromResult(principal);
     }
 }
